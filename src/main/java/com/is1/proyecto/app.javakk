@@ -1,0 +1,108 @@
+package com.is1.proyecto;
+
+import static spark.Spark.*;
+
+import com.github.mustachejava.DefaultMustacheFactory;
+import com.is1.proyecto.models.User;
+import io.ebean.DB;
+import io.ebean.EbeanServerFactory;
+import io.ebean.config.ServerConfig;
+import io.ebean.DataAccessException; // <-- CAMBIO AQUÍ: Usar DataAccessException
+
+import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
+
+import spark.ModelAndView;
+import spark.template.mustache.MustacheTemplateEngine;
+
+public class App {
+    public static void main(String[] args) {
+        port(4567);
+
+        // --- Configuración e Inicialización de Ebean ---
+        ServerConfig config = new ServerConfig();
+        config.setName("db");
+        config.loadFromProperties();
+        config.addPackage("com.is1.proyecto.models.**");
+        config.setDefaultServer(true);
+
+        EbeanServerFactory.create(config);
+        System.out.println("EbeanServer inicializado y listo para usar.");
+        // --- Fin de Inicialización de Ebean ---
+
+        MustacheTemplateEngine templateEngine = new MustacheTemplateEngine(new DefaultMustacheFactory("templates"));
+
+        get("/", (req, res) -> {
+            return new ModelAndView(new HashMap<>(), "index.mustache");
+        }, templateEngine);
+
+        // --- RUTAS PARA DAR DE ALTA UN USUARIO (MODIFICADAS) ---
+
+        get("/users/new", (req, res) -> {
+            Map<String, Object> model = new HashMap<>();
+            if (req.queryParams("error") != null) {
+                model.put("error", req.queryParams("error"));
+            }
+            return new ModelAndView(model, "create-user.mustache");
+        }, templateEngine);
+
+        post("/users/create", (req, res) -> {
+            String name = req.queryParams("name");
+            String password = req.queryParams("password");
+
+            if (name == null || name.trim().isEmpty() ||
+                password == null || password.trim().isEmpty()) {
+                res.status(400);
+                res.redirect("/users/new?error=Nombre y Contraseña son obligatorios.");
+                return null;
+            }
+
+            User newUser = new User(name, password);
+
+            try {
+                DB.save(newUser);
+                System.out.println("Usuario creado exitosamente: " + newUser.getName());
+                res.redirect("/users/success");
+            } catch (DataAccessException e) { // <-- CAMBIO AQUÍ: Capturar DataAccessException
+                System.err.println("Error al crear usuario: " + e.getMessage());
+                // El manejo de errores de unique constraint ya no es tan relevante en el modelo ultra-simple,
+                // pero si reintroduces el email con @Unique, deberías revisar esta lógica.
+                res.redirect("/users/new?error=Ocurrió un error inesperado al crear el usuario. Intente de nuevo.");
+            }
+            return null;
+        });
+
+        get("/users/success", (req, res) -> {
+            Map<String, Object> model = new HashMap<>();
+            model.put("message", "¡Usuario creado exitosamente!");
+            return new ModelAndView(model, "success.mustache");
+        }, templateEngine);
+
+        // --- FIN DE RUTAS MODIFICADAS ---
+
+        get("/users", (req, res) -> {
+            StringBuilder sb = new StringBuilder();
+            List<User> users = DB.find(User.class).findList();
+            for (User u : users) {
+                sb.append("ID: ").append(u.getId())
+                  .append(", Nombre: ").append(u.getName())
+                  .append("<br>");
+            }
+            return sb.toString();
+        });
+
+        get("/uuu", (req, res) -> {
+            List<User> users = DB.find(User.class).findList();
+            Map<String, Object> model = new HashMap<>();
+            model.put("users", users);
+            return new ModelAndView(model, "users.mustache");
+        }, templateEngine);
+
+        exception(Exception.class, (e, req, res) -> {
+            e.printStackTrace();
+            res.status(500);
+            res.body("<h1>Error del Servidor</h1><p>Ocurrió un problema inesperado: " + e.getMessage() + "</p>");
+        });
+    }
+}
