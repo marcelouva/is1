@@ -17,6 +17,19 @@
         </configuration>
       </plugin>
       <plugin>
+        <groupId>org.javalite</groupId>
+        <artifactId>activejdbc-instrumentation</artifactId>
+        <version>${activejdbc.version}</version>
+        <executions>
+          <execution>
+            <phase>process-classes</phase>
+            <goals>
+              <goal>instrument</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
         <artifactId>maven-shade-plugin</artifactId>
         <version>3.2.4</version>
         <executions>
@@ -27,7 +40,6 @@
             </goals>
             <configuration>
               <transformers>
-                <transformer />
                 <transformer>
                   <mainClass>com.is1.proyecto.App</mainClass>
                 </transformer>
@@ -64,9 +76,11 @@
     <sqlite-jdbc.version>3.45.1.0</sqlite-jdbc.version>
     <jakarta.persistence.version>3.1.0</jakarta.persistence.version>
     <slf4j.version>1.7.36</slf4j.version>
+    <activejdbc.version>3.4-j11</activejdbc.version>
     <maven.compiler.source>11</maven.compiler.source>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <junit.version>4.13.2</junit.version>
     <jackson.version>2.17.1</jackson.version>
+    <mysql.version>8.0.33</mysql.version>
   </properties>
 </project>
