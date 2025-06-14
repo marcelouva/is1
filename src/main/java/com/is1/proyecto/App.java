@@ -51,6 +51,62 @@ public class App {
             return objectMapper.writeValueAsString(Map.of("message", "¡Bienvenido a la API simplificada! Usa /users para crear usuarios."));
         });
 
+
+// --- NUEVO ENDPOINT: Formulario para crear un User ---
+        get("/users/form", (req, res) -> {
+            res.type("text/html"); // La respuesta será HTML
+
+            // Construye la cadena HTML para el formulario de registro de usuario
+            String htmlForm = "<!DOCTYPE html>\n" +
+                              "<html lang=\"es\">\n" +
+                              "<head>\n" +
+                              "    <meta charset=\"UTF-8\">\n" +
+                              "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n" +
+                              "    <title>Registrar Nuevo Usuario</title>\n" +
+                              "    <script src=\"https://cdn.tailwindcss.com\"></script>\n" +
+                              "    <style>\n" +
+                              "        body {\n" +
+                              "            font-family: 'Inter', sans-serif;\n" +
+                              "        }\n" +
+                              "    </style>\n" +
+                              "</head>\n" +
+                              "<body class=\"bg-gray-100 flex items-center justify-center min-h-screen p-4\">\n" +
+                              "    <div class=\"bg-white p-8 rounded-lg shadow-lg w-full max-w-md\">\n" +
+                              "        <h1 class=\"text-3xl font-bold text-center text-gray-800 mb-6\">Registrar Nuevo Usuario</h1>\n" +
+                              "        <form action=\"/users\" method=\"post\" class=\"space-y-4\">\n" +
+                              "            <div>\n" +
+                              "                <label for=\"name\" class=\"block text-gray-700 text-sm font-medium mb-1\">Nombre de Usuario:</label>\n" +
+                              "                <input type=\"text\" id=\"name\" name=\"name\" required\n" +
+                              "                       class=\"w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500\">\n" +
+                              "            </div>\n" +
+                              "            <div>\n" +
+                              "                <label for=\"password\" class=\"block text-gray-700 text-sm font-medium mb-1\">Contraseña:</label>\n" +
+                              "                <input type=\"password\" id=\"password\" name=\"password\" required\n" +
+                              "                       class=\"w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500\">\n" +
+                              "            </div>\n" +
+                              "            <button type=\"submit\"\n" +
+                              "                    class=\"w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2\">\n" +
+                              "                Registrar Usuario\n" +
+                              "            </button>\n" +
+                              "            <div class=\"text-center mt-4\">\n" +
+                              "                <a href=\"/\" class=\"text-blue-600 hover:underline text-sm\">Volver al inicio</a>\n" +
+                              "            </div>\n" +
+                              "        </form>\n" +
+                              "    </div>\n" +
+                              "</body>\n" +
+                              "</html>";
+            return htmlForm;
+        });
+
+
+
+
+
+
+
+
+
+
         // --- Endpoint para dar de alta un nuevo User (método POST) ---
         // Espera parámetros 'name' y 'password' en el cuerpo de la solicitud (form-urlencoded).
         // Ejemplo de uso con curl:
