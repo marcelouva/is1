@@ -11,6 +11,7 @@ import com.is1.proyecto.models.User; // Tu modelo User para interactuar con la t
 import spark.ModelAndView;
 import spark.template.mustache.MustacheTemplateEngine;
 
+import java.util.HashMap;
 import java.util.Map; // Para usar Map.of() en las respuestas JSON
 
 public class App {
@@ -60,6 +61,13 @@ get("/users/2form", (req, res) -> {
 }, new MustacheTemplateEngine());
 
 
+
+
+get("/users/altaform", (req, res) -> {
+    Map<String, Object> model = new HashMap<>();
+    model.put("titulo", "Alta usuario");
+    return new ModelAndView(model, "user_form_con_titulo.mustache");
+}, new MustacheTemplateEngine());
 
 
 
