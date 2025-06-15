@@ -8,6 +8,9 @@ import static spark.Spark.*; // Importa los métodos estáticos de Spark (get, p
 import org.javalite.activejdbc.Base; // Clase central de ActiveJDBC para gestión de DB
 import com.is1.proyecto.models.User; // Tu modelo User para interactuar con la tabla 'users'
 
+import spark.ModelAndView;
+import spark.template.mustache.MustacheTemplateEngine;
+
 import java.util.Map; // Para usar Map.of() en las respuestas JSON
 
 public class App {
@@ -50,6 +53,15 @@ public class App {
             res.type("application/json"); // La respuesta será en formato JSON.
             return objectMapper.writeValueAsString(Map.of("message", "¡Bienvenido a la API simplificada! Usa /users para crear usuarios."));
         });
+
+
+get("/users/2form", (req, res) -> {
+    return new ModelAndView(null, "user_form.mustache");
+}, new MustacheTemplateEngine());
+
+
+
+
 
 
 // --- NUEVO ENDPOINT: Formulario para crear un User ---
