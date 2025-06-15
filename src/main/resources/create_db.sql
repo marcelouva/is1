@@ -21,3 +21,15 @@ INSERT INTO users (name, password) VALUES ('Charlie', 'mysecret');
 
 -- Muestra las tablas para verificar que 'usuarios' fue creada (solo para confirmación)
 SHOW TABLES;
+
+-- Crear tabla teams
+CREATE TABLE IF NOT EXISTS teams (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    description TEXT
+);
+
+-- Agregar columna team_id a users y establecer la clave foránea
+ALTER TABLE users
+ADD COLUMN team_id INT,
+ADD CONSTRAINT fk_team FOREIGN KEY (team_id) REFERENCES teams(id);

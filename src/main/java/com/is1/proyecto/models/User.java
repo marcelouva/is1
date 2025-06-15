@@ -3,7 +3,11 @@ package com.is1.proyecto.models;
 import org.javalite.activejdbc.Model;
 import org.javalite.activejdbc.annotations.Table;
 
+
+
+import org.javalite.activejdbc.annotations.BelongsTo;
 @Table("users") // Esta anotación asocia explícitamente el modelo 'User' con la tabla 'users' en la DB.
+@BelongsTo(parent = Team.class, foreignKeyName ="team_id") // Un User pertenece a un Team
 public class User extends Model {
 
     // ActiveJDBC mapea automáticamente las columnas de la tabla 'users'
