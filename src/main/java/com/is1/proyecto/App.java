@@ -1,18 +1,23 @@
 package com.is1.proyecto; // Asegúrate de que el paquete coincide con tu groupId y estructura de carpetas
 
 import com.fasterxml.jackson.databind.ObjectMapper; // Necesario para convertir objetos Java a JSON
+import java.util.stream.Collectors;
 
 import static spark.Spark.*; // Importa los métodos estáticos de Spark (get, post, before, after, etc.)
 
 // Importaciones de ActiveJDBC
 import org.javalite.activejdbc.Base; // Clase central de ActiveJDBC para gestión de DB
+
+import com.is1.proyecto.models.Team;
 import com.is1.proyecto.models.User; // Tu modelo User para interactuar con la tabla 'users'
 
 import spark.ModelAndView;
 import spark.template.mustache.MustacheTemplateEngine;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map; // Para usar Map.of() en las respuestas JSON
+
 
 public class App {
 
@@ -68,6 +73,69 @@ get("/users/altaform", (req, res) -> {
     model.put("titulo", "Alta usuario");
     return new ModelAndView(model, "user_form_con_titulo.mustache");
 }, new MustacheTemplateEngine());
+
+
+
+
+get("/altausuario", (req, res) -> {
+    List<Team> teams = Team.findAll(); // Trae todos los equipos
+    List<Map<String, Object>> teamData = teams.stream().map(team -> Map.of(
+            "id", team.getId(),
+            "name", team.getString("name")
+    )).collect(Collectors.toList());
+
+    Map<String, Object> model = new HashMap<>();
+    model.put("teams", teamData); // Enviamos los equipos a la plantilla
+
+    return new ModelAndView(model, "user_form_team.mustache");
+}, new MustacheTemplateEngine());
+
+
+
+post("/postusers", (req, res) -> {
+    res.type("application/json");
+
+    String name = req.queryParams("name");
+    String password = req.queryParams("password");
+    String teamIdStr = req.queryParams("team_id");
+
+    // Validaciones básicas
+    if (name == null || name.isEmpty() || password == null || password.isEmpty() || teamIdStr == null || teamIdStr.isEmpty()) {
+        res.status(400);
+        return objectMapper.writeValueAsString(Map.of(
+            "error", "Nombre, contraseña y equipo son requeridos."
+        ));
+    }
+
+    try {
+        int teamId = Integer.parseInt(teamIdStr); // Convertimos el team_id a entero
+
+        User newUser = new User();
+        newUser.set("name", name);
+        newUser.set("password", password); // En producción, siempre encriptar
+        newUser.set("team_id", teamId);
+        newUser.saveIt();
+
+        res.status(201);
+        return objectMapper.writeValueAsString(Map.of(
+            "message", "Usuario '" + name + "' registrado con éxito.",
+            "id", newUser.getId(),
+            "team_id", teamId
+        ));
+    } catch (Exception e) {
+        System.err.println("Error al registrar usuario: " + e.getMessage());
+        res.status(500);
+        return objectMapper.writeValueAsString(Map.of(
+            "error", "Error interno al registrar usuario."
+        ));
+    }
+});
+
+
+
+
+
+
 
 
 
