@@ -33,3 +33,35 @@ CREATE TABLE IF NOT EXISTS teams (
 ALTER TABLE users
 ADD COLUMN team_id INT,
 ADD CONSTRAINT fk_team FOREIGN KEY (team_id) REFERENCES teams(id);
+
+-- Insertar algunos equipos de ejemplo
+INSERT INTO teams (name, description) VALUES ('Frontend', 'Equipo de desarrollo de interfaz de usuario');
+INSERT INTO teams (name, description) VALUES ('Backend', 'Equipo encargado de la lógica del servidor y base de datos');
+INSERT INTO teams (name, description) VALUES ('QA', 'Equipo de pruebas de calidad y control de errores');
+INSERT INTO teams (name, description) VALUES ('DevOps', 'Equipo de integración y despliegue continuo');
+
+-- Crear tabla de tareas
+CREATE TABLE IF NOT EXISTS tasks (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    goal TEXT
+);
+
+
+
+-- Tabla intermedia para la relación muchos a muchos entre teams y tasks
+CREATE TABLE IF NOT EXISTS teams_tasks (
+    team_id INT NOT NULL,
+    task_id INT NOT NULL,
+    PRIMARY KEY (team_id, task_id),
+    FOREIGN KEY (team_id) REFERENCES teams(id),
+    FOREIGN KEY (task_id) REFERENCES tasks(id)
+);
+
+
+-- Tareas de ejemplo
+INSERT INTO tasks (name, goal) VALUES ('Diseñar UI', 'Crear una interfaz de usuario moderna');
+INSERT INTO tasks (name, goal) VALUES ('Implementar backend', 'Desarrollar la lógica y base de datos');
+INSERT INTO tasks (name, goal) VALUES ('Realizar testing', 'Verificar que las funcionalidades estén completas');
+INSERT INTO tasks (name, goal) VALUES ('Desplegar app', 'Publicar la aplicación en producción');
+

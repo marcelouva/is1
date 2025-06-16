@@ -8,6 +8,7 @@ import static spark.Spark.*; // Importa los métodos estáticos de Spark (get, p
 // Importaciones de ActiveJDBC
 import org.javalite.activejdbc.Base; // Clase central de ActiveJDBC para gestión de DB
 
+import com.is1.proyecto.models.Task;
 import com.is1.proyecto.models.Team;
 import com.is1.proyecto.models.User; // Tu modelo User para interactuar con la tabla 'users'
 
@@ -130,6 +131,93 @@ post("/postusers", (req, res) -> {
         ));
     }
 });
+//--------------------------------------------------
+
+
+        // --- NUEVO ENDPOINT: Vincular una Tarea a un Equipo ---
+        // Este endpoint espera 'team_id' y 'task_id' en el cuerpo de la solicitud (form-urlencoded o JSON).
+        // Ejemplo de uso con curl (form-urlencoded):
+        // curl -X POST -d "team_id=1&task_id=1" http://localhost:8080/teams/tasks/link
+        post("/teams/tasks/link", (req, res) -> {
+            res.type("application/json");
+
+            // Obtener los IDs del equipo y la tarea de los parámetros de la solicitud
+            String teamIdStr = req.queryParams("team_id");
+            String taskIdStr = req.queryParams("task_id");
+
+            // Validaciones básicas
+            if (teamIdStr == null || teamIdStr.isEmpty() || taskIdStr == null || taskIdStr.isEmpty()) {
+                res.status(400);
+                return objectMapper.writeValueAsString(Map.of("error", "Los IDs del equipo y la tarea son requeridos."));
+            }
+
+            try {
+                // Convertir los IDs a enteros
+                long teamId = Long.parseLong(teamIdStr);
+                long taskId = Long.parseLong(taskIdStr);
+
+                // Buscar el equipo y la tarea en la base de datos
+                Team team = Team.findById(teamId);
+                Task task = Task.findById(taskId);
+
+                // Verificar si el equipo y la tarea existen
+                if (team == null) {
+                    res.status(404);
+                    return objectMapper.writeValueAsString(Map.of("error", "Equipo con ID " + teamId + " no encontrado."));
+                }
+                if (task == null) {
+                    res.status(404);
+                    return objectMapper.writeValueAsString(Map.of("error", "Tarea con ID " + taskId + " no encontrada."));
+                }
+
+                // Vincular la tarea al equipo usando el método 'add' de ActiveJDBC para relaciones Many2Many
+                // ActiveJDBC se encargará de insertar la entrada en la tabla 'teams_tasks'
+                team.add(task);
+                // No es estrictamente necesario llamar a team.save() después de add() para relaciones Many2Many,
+                // ya que add() ya persiste la asociación, pero no hace daño y es buena práctica si se modificaron otros atributos del team.
+                // team.save();
+
+                res.status(200); // OK
+                return objectMapper.writeValueAsString(Map.of("message", "Tarea con ID " + taskId + " vinculada exitosamente al Equipo con ID " + teamId + "."));
+
+            } catch (NumberFormatException e) {
+                res.status(400);
+                return objectMapper.writeValueAsString(Map.of("error", "Los IDs de equipo y tarea deben ser números válidos."));
+            } catch (Exception e) {
+                System.err.println("Error al vincular tarea a equipo: " + e.getMessage());
+                e.printStackTrace();
+                res.status(500);
+                return objectMapper.writeValueAsString(Map.of("error", "Error interno al vincular tarea a equipo: " + e.getMessage()));
+            }
+        });
+
+
+
+ // --- NUEVO ENDPOINT: Mostrar el formulario para vincular Tarea a Equipo (GET) ---
+        get("/teams/tasks/linkform", (req, res) -> {
+            // Cargar todos los equipos y tareas de la base de datos
+            List<Team> teams = Team.findAll();
+            List<Task> tasks = Task.findAll();
+
+            // Preparar los datos para la plantilla Mustache
+            Map<String, Object> model = new HashMap<>();
+            // Mapear la lista de Teams a un formato que Mustache pueda procesar fácilmente (id y name)
+            model.put("teams", teams.stream()
+                                  .map(team -> Map.of("id", team.getId(), "name", team.getString("name")))
+                                  .collect(Collectors.toList()));
+            // Mapear la lista de Tasks a un formato que Mustache pueda procesar fácilmente (id y name)
+            model.put("tasks", tasks.stream()
+                                  .map(task -> Map.of("id", task.getId(), "name", task.getString("name")))
+                                  .collect(Collectors.toList()));
+
+            // Renderizar la plantilla Mustache con los datos
+            return new ModelAndView(model, "link_team_task.mustache");
+        }, new MustacheTemplateEngine());
+
+
+
+
+
 
 
 
